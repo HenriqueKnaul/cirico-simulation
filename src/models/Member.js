@@ -1,48 +1,56 @@
 /**
- * Represents the autonomous agent inside the simulation environment.
- * Maintains its own state machine, metrics, and routine execution.
+ * Refactored Autonomous Agent with Stochastic Arrival support.
+ * Manages its own timeline constraints and lifecycle entry flags.
  */
 export class Member {
-    constructor(id, name, workoutRoutine, initialFloor = "LowerFloor") {
+    constructor(id, name, workoutCardId, arrivalTick, initialFloor = "LowerFloor") {
         this.id = id;
         this.name = name;
+        this.workoutCardId = workoutCardId;
+        this.arrivalTick = arrivalTick; // The exact simulation minute this agent enters the gym
         
-        // CRITICAL: We clone the array via spread operator to break reference sharing.
-        // Prevents multi-agent mutation bugs if routines are generated from master configs.
-        this.workoutRoutine = [...workoutRoutine]; 
+        this.activeExercises = []; 
+        this.status = "NotArrived"; // Lifecycle State Machine: "NotArrived" | "Awaiting" | "Training" | "Completed"
+        this.remainingTime = 0;
+        this.waitTime = 0;
+        this.currentFloor = initialFloor;
+        this.currentExercise = null; 
         
-        this.status = "Awaiting"; // State Machine: "Awaiting" | "Training" | "Moving" | "Completed"
-        this.remainingTime = 0;   // Countdown timer for resource consumption
-        this.waitTime = 0;        // KPI: Accumulated friction/idle time in minutes
-        this.currentFloor = initialFloor; 
+        // Analytical KPIs to evaluate execution efficiency at teardown
+        this.totalTrainingTime = 0;
     }
 
     /**
-     * Peek at the head of the routine array without dequeuing it.
-     * Returns null if the stack is depleted.
+     * Injects the routine splits and dynamically overrides exercise durations 
+     * to match the new 8-15 minute standard block requirement.
      */
-    getNextMachineName() {
-        return this.workoutRoutine[0] || null;
+    loadSessionWorkout(workoutCard, splitLetter) {
+        const routine = workoutCard.getRoutineBySplit(splitLetter);
+        
+        // Deep clone and duration override engineering phase
+        this.activeExercises = routine.map(exercise => {
+            // Generates a randomized integer bounded strictly between 8 and 15 minutes
+            const realisticDuration = Math.floor(Math.random() * 8) + 8;
+            return {
+                ...exercise,
+                defaultDuration: realisticDuration
+            };
+        });
     }
 
-    /**
-     * Shifts the routine array, effectively committing the exercise as finished.
-     */
-    completeCurrentExercise() {
-        this.workoutRoutine.shift();
+    completeExercise(exercise) {
+        this.activeExercises = this.activeExercises.filter(e => e !== exercise);
     }
 
-    /**
-     * Direct metric tracking. Called on every clock tick where status === "Awaiting".
-     */
     incrementWaitTime() {
         this.waitTime++;
     }
 
-    /**
-     * Defensive validation to check if the agent has fully cleared its operational loop.
-     */
+    incrementTrainingTime() {
+        this.totalTrainingTime++;
+    }
+
     hasFinishedWorkout() {
-        return this.workoutRoutine.length === 0 && this.status !== "Training";
+        return this.activeExercises.length === 0 && this.status !== "Training";
     }
 }
