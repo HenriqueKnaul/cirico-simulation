@@ -8,8 +8,8 @@ import { HtmlVisualizer } from './src/utils/htmlVisualizer.js';
 // 1. Initialize core physical infrastructure
 const machines = gymLayout.machines.map(m => new Machine(m.id, m.name, m.floor));
 
-// 2. Load Generation: Distribute a staggered stream of 50 multi-split agents
-const members = MemberGenerator.generate(50);
+// 2. Load Generation: Distribute a staggered stream of 30 multi-split agents
+const members = MemberGenerator.generate(30);
 
 // 3. Setup core simulation framework (120 minutes window execution)
 const simulator = new Simulator(machines, members, { duration: 120 });

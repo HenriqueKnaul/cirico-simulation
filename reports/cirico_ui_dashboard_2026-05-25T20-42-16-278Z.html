@@ -1,0 +1,783 @@
+
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-zinc-950 text-zinc-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cirico Iron Gym - Timeline Audit Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #09090b; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #27272a; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+    </style>
+</head>
+<body class="h-full flex flex-col antialiased">
+    <header class="flex-none bg-zinc-900 border-b border-zinc-800 px-6 py-4 flex items-center justify-between shadow-lg">
+        <div class="flex items-center gap-3">
+            <div class="h-3 w-3 rounded-full bg-emerald-500 animate-pulse"></div>
+            <h1 class="text-lg font-bold tracking-tight text-zinc-100">Cirico Simulation Engine <span class="text-zinc-500 font-mono text-xs font-normal">v2.1.0</span></h1>
+        </div>
+        <div class="flex items-center gap-3">
+            <label for="agentSelector" class="text-xs font-mono tracking-wider text-zinc-400 font-bold uppercase">Select Agent Instance:</label>
+            <select id="agentSelector" class="bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2 text-sm font-medium text-zinc-200 focus:outline-none focus:border-emerald-700 transition-colors cursor-pointer">
+                <option value="" disabled selected>Choose a member to audit...</option>
+                <option value="agent-301">Henrique #1 (Wait: 5m | Train: 40m)</option>
+<option value="agent-302">Guilherme #2 (Wait: 24m | Train: 35m)</option>
+<option value="agent-303">Kaique #3 (Wait: 8m | Train: 31m)</option>
+<option value="agent-304">Breno #4 (Wait: 22m | Train: 49m)</option>
+<option value="agent-305">Andressa #5 (Wait: 8m | Train: 41m)</option>
+<option value="agent-306">Cristiano #6 (Wait: 7m | Train: 46m)</option>
+<option value="agent-307">Rodrigo #7 (Wait: 7m | Train: 36m)</option>
+<option value="agent-308">Aline #8 (Wait: 22m | Train: 30m)</option>
+<option value="agent-309">Gustavo #9 (Wait: 32m | Train: 30m)</option>
+<option value="agent-310">Eduarda #10 (Wait: 8m | Train: 51m)</option>
+<option value="agent-311">Mateus #11 (Wait: 12m | Train: 49m)</option>
+<option value="agent-312">Lucas #12 (Wait: 11m | Train: 43m)</option>
+<option value="agent-313">Gabriel #13 (Wait: 15m | Train: 27m)</option>
+<option value="agent-314">Bruno #14 (Wait: 10m | Train: 31m)</option>
+<option value="agent-315">Rafael #15 (Wait: 24m | Train: 45m)</option>
+<option value="agent-316">Henrique #16 (Wait: 30m | Train: 52m)</option>
+<option value="agent-317">Guilherme #17 (Wait: 45m | Train: 42m)</option>
+<option value="agent-318">Kaique #18 (Wait: 10m | Train: 36m)</option>
+<option value="agent-319">Breno #19 (Wait: 21m | Train: 45m)</option>
+<option value="agent-320">Andressa #20 (Wait: 0m | Train: 51m)</option>
+<option value="agent-321">Cristiano #21 (Wait: 22m | Train: 43m)</option>
+<option value="agent-322">Rodrigo #22 (Wait: 15m | Train: 47m)</option>
+<option value="agent-323">Aline #23 (Wait: 0m | Train: 60m)</option>
+<option value="agent-324">Gustavo #24 (Wait: 9m | Train: 47m)</option>
+<option value="agent-325">Eduarda #25 (Wait: 24m | Train: 45m)</option>
+<option value="agent-326">Mateus #26 (Wait: 31m | Train: 34m)</option>
+<option value="agent-327">Lucas #27 (Wait: 39m | Train: 33m)</option>
+<option value="agent-328">Gabriel #28 (Wait: 20m | Train: 47m)</option>
+<option value="agent-329">Bruno #29 (Wait: 31m | Train: 43m)</option>
+<option value="agent-330">Rafael #30 (Wait: 7m | Train: 33m)</option>
+            </select>
+        </div>
+    </header>
+
+    <main class="flex-1 p-6 overflow-hidden max-w-5xl w-full mx-auto flex flex-col justify-center">
+        <div id="welcomePlaceholder" class="text-center py-20 border-2 border-dashed border-zinc-800 rounded-2xl bg-zinc-900/20 max-w-xl mx-auto w-full">
+            <svg class="mx-auto h-12 w-12 text-zinc-600 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+            </svg>
+            <h3 class="text-sm font-semibold text-zinc-300">No Agent Selected</h3>
+            <p class="mt-1 text-xs text-zinc-500">Pick an athlete from the dropdown list on the top right corner to audit their 120-minute operational execution trace.</p>
+        </div>
+
+        <div id="timelineContainer" class="hidden flex-1 flex flex-col overflow-hidden">
+            
+                <div id="agent-301" class="agent-timeline hidden flex flex-col gap-2 animate-fade-in">
+                    <div class="mb-4 bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-zinc-100">Henrique #1</h2>
+                            <p class="text-xs text-zinc-400 font-mono mt-1">Workout Template ID Reference: 1003</p>
+                        </div>
+                        <div class="flex gap-4 text-center font-mono">
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">WAIT TIME</span>
+                                <span class="text-lg font-bold text-amber-400">5 min</span>
+                            </div>
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">TRAIN TIME</span>
+                                <span class="text-lg font-bold text-emerald-400">40 min</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+                        
+                    </div>
+                </div>
+            
+
+                <div id="agent-302" class="agent-timeline hidden flex flex-col gap-2 animate-fade-in">
+                    <div class="mb-4 bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-zinc-100">Guilherme #2</h2>
+                            <p class="text-xs text-zinc-400 font-mono mt-1">Workout Template ID Reference: 1003</p>
+                        </div>
+                        <div class="flex gap-4 text-center font-mono">
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">WAIT TIME</span>
+                                <span class="text-lg font-bold text-amber-400">24 min</span>
+                            </div>
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">TRAIN TIME</span>
+                                <span class="text-lg font-bold text-emerald-400">35 min</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+                        
+                    </div>
+                </div>
+            
+
+                <div id="agent-303" class="agent-timeline hidden flex flex-col gap-2 animate-fade-in">
+                    <div class="mb-4 bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-zinc-100">Kaique #3</h2>
+                            <p class="text-xs text-zinc-400 font-mono mt-1">Workout Template ID Reference: 1002</p>
+                        </div>
+                        <div class="flex gap-4 text-center font-mono">
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">WAIT TIME</span>
+                                <span class="text-lg font-bold text-amber-400">8 min</span>
+                            </div>
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">TRAIN TIME</span>
+                                <span class="text-lg font-bold text-emerald-400">31 min</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+                        
+                    </div>
+                </div>
+            
+
+                <div id="agent-304" class="agent-timeline hidden flex flex-col gap-2 animate-fade-in">
+                    <div class="mb-4 bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-zinc-100">Breno #4</h2>
+                            <p class="text-xs text-zinc-400 font-mono mt-1">Workout Template ID Reference: 1002</p>
+                        </div>
+                        <div class="flex gap-4 text-center font-mono">
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">WAIT TIME</span>
+                                <span class="text-lg font-bold text-amber-400">22 min</span>
+                            </div>
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">TRAIN TIME</span>
+                                <span class="text-lg font-bold text-emerald-400">49 min</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+                        
+                    </div>
+                </div>
+            
+
+                <div id="agent-305" class="agent-timeline hidden flex flex-col gap-2 animate-fade-in">
+                    <div class="mb-4 bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-zinc-100">Andressa #5</h2>
+                            <p class="text-xs text-zinc-400 font-mono mt-1">Workout Template ID Reference: 1001</p>
+                        </div>
+                        <div class="flex gap-4 text-center font-mono">
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">WAIT TIME</span>
+                                <span class="text-lg font-bold text-amber-400">8 min</span>
+                            </div>
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">TRAIN TIME</span>
+                                <span class="text-lg font-bold text-emerald-400">41 min</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+                        
+                    </div>
+                </div>
+            
+
+                <div id="agent-306" class="agent-timeline hidden flex flex-col gap-2 animate-fade-in">
+                    <div class="mb-4 bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-zinc-100">Cristiano #6</h2>
+                            <p class="text-xs text-zinc-400 font-mono mt-1">Workout Template ID Reference: 1002</p>
+                        </div>
+                        <div class="flex gap-4 text-center font-mono">
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">WAIT TIME</span>
+                                <span class="text-lg font-bold text-amber-400">7 min</span>
+                            </div>
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">TRAIN TIME</span>
+                                <span class="text-lg font-bold text-emerald-400">46 min</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+                        
+                    </div>
+                </div>
+            
+
+                <div id="agent-307" class="agent-timeline hidden flex flex-col gap-2 animate-fade-in">
+                    <div class="mb-4 bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-zinc-100">Rodrigo #7</h2>
+                            <p class="text-xs text-zinc-400 font-mono mt-1">Workout Template ID Reference: 1002</p>
+                        </div>
+                        <div class="flex gap-4 text-center font-mono">
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">WAIT TIME</span>
+                                <span class="text-lg font-bold text-amber-400">7 min</span>
+                            </div>
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">TRAIN TIME</span>
+                                <span class="text-lg font-bold text-emerald-400">36 min</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+                        
+                    </div>
+                </div>
+            
+
+                <div id="agent-308" class="agent-timeline hidden flex flex-col gap-2 animate-fade-in">
+                    <div class="mb-4 bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-zinc-100">Aline #8</h2>
+                            <p class="text-xs text-zinc-400 font-mono mt-1">Workout Template ID Reference: 1003</p>
+                        </div>
+                        <div class="flex gap-4 text-center font-mono">
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">WAIT TIME</span>
+                                <span class="text-lg font-bold text-amber-400">22 min</span>
+                            </div>
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">TRAIN TIME</span>
+                                <span class="text-lg font-bold text-emerald-400">30 min</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+                        
+                    </div>
+                </div>
+            
+
+                <div id="agent-309" class="agent-timeline hidden flex flex-col gap-2 animate-fade-in">
+                    <div class="mb-4 bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-zinc-100">Gustavo #9</h2>
+                            <p class="text-xs text-zinc-400 font-mono mt-1">Workout Template ID Reference: 1003</p>
+                        </div>
+                        <div class="flex gap-4 text-center font-mono">
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">WAIT TIME</span>
+                                <span class="text-lg font-bold text-amber-400">32 min</span>
+                            </div>
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">TRAIN TIME</span>
+                                <span class="text-lg font-bold text-emerald-400">30 min</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+                        
+                    </div>
+                </div>
+            
+
+                <div id="agent-310" class="agent-timeline hidden flex flex-col gap-2 animate-fade-in">
+                    <div class="mb-4 bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-zinc-100">Eduarda #10</h2>
+                            <p class="text-xs text-zinc-400 font-mono mt-1">Workout Template ID Reference: 1001</p>
+                        </div>
+                        <div class="flex gap-4 text-center font-mono">
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">WAIT TIME</span>
+                                <span class="text-lg font-bold text-amber-400">8 min</span>
+                            </div>
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">TRAIN TIME</span>
+                                <span class="text-lg font-bold text-emerald-400">51 min</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+                        
+                    </div>
+                </div>
+            
+
+                <div id="agent-311" class="agent-timeline hidden flex flex-col gap-2 animate-fade-in">
+                    <div class="mb-4 bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-zinc-100">Mateus #11</h2>
+                            <p class="text-xs text-zinc-400 font-mono mt-1">Workout Template ID Reference: 1002</p>
+                        </div>
+                        <div class="flex gap-4 text-center font-mono">
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">WAIT TIME</span>
+                                <span class="text-lg font-bold text-amber-400">12 min</span>
+                            </div>
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">TRAIN TIME</span>
+                                <span class="text-lg font-bold text-emerald-400">49 min</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+                        
+                    </div>
+                </div>
+            
+
+                <div id="agent-312" class="agent-timeline hidden flex flex-col gap-2 animate-fade-in">
+                    <div class="mb-4 bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-zinc-100">Lucas #12</h2>
+                            <p class="text-xs text-zinc-400 font-mono mt-1">Workout Template ID Reference: 1002</p>
+                        </div>
+                        <div class="flex gap-4 text-center font-mono">
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">WAIT TIME</span>
+                                <span class="text-lg font-bold text-amber-400">11 min</span>
+                            </div>
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">TRAIN TIME</span>
+                                <span class="text-lg font-bold text-emerald-400">43 min</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+                        
+                    </div>
+                </div>
+            
+
+                <div id="agent-313" class="agent-timeline hidden flex flex-col gap-2 animate-fade-in">
+                    <div class="mb-4 bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-zinc-100">Gabriel #13</h2>
+                            <p class="text-xs text-zinc-400 font-mono mt-1">Workout Template ID Reference: 1003</p>
+                        </div>
+                        <div class="flex gap-4 text-center font-mono">
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">WAIT TIME</span>
+                                <span class="text-lg font-bold text-amber-400">15 min</span>
+                            </div>
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">TRAIN TIME</span>
+                                <span class="text-lg font-bold text-emerald-400">27 min</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+                        
+                    </div>
+                </div>
+            
+
+                <div id="agent-314" class="agent-timeline hidden flex flex-col gap-2 animate-fade-in">
+                    <div class="mb-4 bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-zinc-100">Bruno #14</h2>
+                            <p class="text-xs text-zinc-400 font-mono mt-1">Workout Template ID Reference: 1003</p>
+                        </div>
+                        <div class="flex gap-4 text-center font-mono">
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">WAIT TIME</span>
+                                <span class="text-lg font-bold text-amber-400">10 min</span>
+                            </div>
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">TRAIN TIME</span>
+                                <span class="text-lg font-bold text-emerald-400">31 min</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+                        
+                    </div>
+                </div>
+            
+
+                <div id="agent-315" class="agent-timeline hidden flex flex-col gap-2 animate-fade-in">
+                    <div class="mb-4 bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-zinc-100">Rafael #15</h2>
+                            <p class="text-xs text-zinc-400 font-mono mt-1">Workout Template ID Reference: 1001</p>
+                        </div>
+                        <div class="flex gap-4 text-center font-mono">
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">WAIT TIME</span>
+                                <span class="text-lg font-bold text-amber-400">24 min</span>
+                            </div>
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">TRAIN TIME</span>
+                                <span class="text-lg font-bold text-emerald-400">45 min</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+                        
+                    </div>
+                </div>
+            
+
+                <div id="agent-316" class="agent-timeline hidden flex flex-col gap-2 animate-fade-in">
+                    <div class="mb-4 bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-zinc-100">Henrique #16</h2>
+                            <p class="text-xs text-zinc-400 font-mono mt-1">Workout Template ID Reference: 1001</p>
+                        </div>
+                        <div class="flex gap-4 text-center font-mono">
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">WAIT TIME</span>
+                                <span class="text-lg font-bold text-amber-400">30 min</span>
+                            </div>
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">TRAIN TIME</span>
+                                <span class="text-lg font-bold text-emerald-400">52 min</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+                        
+                    </div>
+                </div>
+            
+
+                <div id="agent-317" class="agent-timeline hidden flex flex-col gap-2 animate-fade-in">
+                    <div class="mb-4 bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-zinc-100">Guilherme #17</h2>
+                            <p class="text-xs text-zinc-400 font-mono mt-1">Workout Template ID Reference: 1003</p>
+                        </div>
+                        <div class="flex gap-4 text-center font-mono">
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">WAIT TIME</span>
+                                <span class="text-lg font-bold text-amber-400">45 min</span>
+                            </div>
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">TRAIN TIME</span>
+                                <span class="text-lg font-bold text-emerald-400">42 min</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+                        
+                    </div>
+                </div>
+            
+
+                <div id="agent-318" class="agent-timeline hidden flex flex-col gap-2 animate-fade-in">
+                    <div class="mb-4 bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-zinc-100">Kaique #18</h2>
+                            <p class="text-xs text-zinc-400 font-mono mt-1">Workout Template ID Reference: 1003</p>
+                        </div>
+                        <div class="flex gap-4 text-center font-mono">
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">WAIT TIME</span>
+                                <span class="text-lg font-bold text-amber-400">10 min</span>
+                            </div>
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">TRAIN TIME</span>
+                                <span class="text-lg font-bold text-emerald-400">36 min</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+                        
+                    </div>
+                </div>
+            
+
+                <div id="agent-319" class="agent-timeline hidden flex flex-col gap-2 animate-fade-in">
+                    <div class="mb-4 bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-zinc-100">Breno #19</h2>
+                            <p class="text-xs text-zinc-400 font-mono mt-1">Workout Template ID Reference: 1002</p>
+                        </div>
+                        <div class="flex gap-4 text-center font-mono">
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">WAIT TIME</span>
+                                <span class="text-lg font-bold text-amber-400">21 min</span>
+                            </div>
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">TRAIN TIME</span>
+                                <span class="text-lg font-bold text-emerald-400">45 min</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+                        
+                    </div>
+                </div>
+            
+
+                <div id="agent-320" class="agent-timeline hidden flex flex-col gap-2 animate-fade-in">
+                    <div class="mb-4 bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-zinc-100">Andressa #20</h2>
+                            <p class="text-xs text-zinc-400 font-mono mt-1">Workout Template ID Reference: 1001</p>
+                        </div>
+                        <div class="flex gap-4 text-center font-mono">
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">WAIT TIME</span>
+                                <span class="text-lg font-bold text-amber-400">0 min</span>
+                            </div>
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">TRAIN TIME</span>
+                                <span class="text-lg font-bold text-emerald-400">51 min</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+                        
+                    </div>
+                </div>
+            
+
+                <div id="agent-321" class="agent-timeline hidden flex flex-col gap-2 animate-fade-in">
+                    <div class="mb-4 bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-zinc-100">Cristiano #21</h2>
+                            <p class="text-xs text-zinc-400 font-mono mt-1">Workout Template ID Reference: 1002</p>
+                        </div>
+                        <div class="flex gap-4 text-center font-mono">
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">WAIT TIME</span>
+                                <span class="text-lg font-bold text-amber-400">22 min</span>
+                            </div>
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">TRAIN TIME</span>
+                                <span class="text-lg font-bold text-emerald-400">43 min</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+                        
+                    </div>
+                </div>
+            
+
+                <div id="agent-322" class="agent-timeline hidden flex flex-col gap-2 animate-fade-in">
+                    <div class="mb-4 bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-zinc-100">Rodrigo #22</h2>
+                            <p class="text-xs text-zinc-400 font-mono mt-1">Workout Template ID Reference: 1002</p>
+                        </div>
+                        <div class="flex gap-4 text-center font-mono">
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">WAIT TIME</span>
+                                <span class="text-lg font-bold text-amber-400">15 min</span>
+                            </div>
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">TRAIN TIME</span>
+                                <span class="text-lg font-bold text-emerald-400">47 min</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+                        
+                    </div>
+                </div>
+            
+
+                <div id="agent-323" class="agent-timeline hidden flex flex-col gap-2 animate-fade-in">
+                    <div class="mb-4 bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-zinc-100">Aline #23</h2>
+                            <p class="text-xs text-zinc-400 font-mono mt-1">Workout Template ID Reference: 1001</p>
+                        </div>
+                        <div class="flex gap-4 text-center font-mono">
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">WAIT TIME</span>
+                                <span class="text-lg font-bold text-amber-400">0 min</span>
+                            </div>
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">TRAIN TIME</span>
+                                <span class="text-lg font-bold text-emerald-400">60 min</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+                        
+                    </div>
+                </div>
+            
+
+                <div id="agent-324" class="agent-timeline hidden flex flex-col gap-2 animate-fade-in">
+                    <div class="mb-4 bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-zinc-100">Gustavo #24</h2>
+                            <p class="text-xs text-zinc-400 font-mono mt-1">Workout Template ID Reference: 1002</p>
+                        </div>
+                        <div class="flex gap-4 text-center font-mono">
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">WAIT TIME</span>
+                                <span class="text-lg font-bold text-amber-400">9 min</span>
+                            </div>
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">TRAIN TIME</span>
+                                <span class="text-lg font-bold text-emerald-400">47 min</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+                        
+                    </div>
+                </div>
+            
+
+                <div id="agent-325" class="agent-timeline hidden flex flex-col gap-2 animate-fade-in">
+                    <div class="mb-4 bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-zinc-100">Eduarda #25</h2>
+                            <p class="text-xs text-zinc-400 font-mono mt-1">Workout Template ID Reference: 1003</p>
+                        </div>
+                        <div class="flex gap-4 text-center font-mono">
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">WAIT TIME</span>
+                                <span class="text-lg font-bold text-amber-400">24 min</span>
+                            </div>
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">TRAIN TIME</span>
+                                <span class="text-lg font-bold text-emerald-400">45 min</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+                        
+                    </div>
+                </div>
+            
+
+                <div id="agent-326" class="agent-timeline hidden flex flex-col gap-2 animate-fade-in">
+                    <div class="mb-4 bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-zinc-100">Mateus #26</h2>
+                            <p class="text-xs text-zinc-400 font-mono mt-1">Workout Template ID Reference: 1003</p>
+                        </div>
+                        <div class="flex gap-4 text-center font-mono">
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">WAIT TIME</span>
+                                <span class="text-lg font-bold text-amber-400">31 min</span>
+                            </div>
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">TRAIN TIME</span>
+                                <span class="text-lg font-bold text-emerald-400">34 min</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+                        
+                    </div>
+                </div>
+            
+
+                <div id="agent-327" class="agent-timeline hidden flex flex-col gap-2 animate-fade-in">
+                    <div class="mb-4 bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-zinc-100">Lucas #27</h2>
+                            <p class="text-xs text-zinc-400 font-mono mt-1">Workout Template ID Reference: 1003</p>
+                        </div>
+                        <div class="flex gap-4 text-center font-mono">
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">WAIT TIME</span>
+                                <span class="text-lg font-bold text-amber-400">39 min</span>
+                            </div>
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">TRAIN TIME</span>
+                                <span class="text-lg font-bold text-emerald-400">33 min</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+                        
+                    </div>
+                </div>
+            
+
+                <div id="agent-328" class="agent-timeline hidden flex flex-col gap-2 animate-fade-in">
+                    <div class="mb-4 bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-zinc-100">Gabriel #28</h2>
+                            <p class="text-xs text-zinc-400 font-mono mt-1">Workout Template ID Reference: 1002</p>
+                        </div>
+                        <div class="flex gap-4 text-center font-mono">
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">WAIT TIME</span>
+                                <span class="text-lg font-bold text-amber-400">20 min</span>
+                            </div>
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">TRAIN TIME</span>
+                                <span class="text-lg font-bold text-emerald-400">47 min</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+                        
+                    </div>
+                </div>
+            
+
+                <div id="agent-329" class="agent-timeline hidden flex flex-col gap-2 animate-fade-in">
+                    <div class="mb-4 bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-zinc-100">Bruno #29</h2>
+                            <p class="text-xs text-zinc-400 font-mono mt-1">Workout Template ID Reference: 1002</p>
+                        </div>
+                        <div class="flex gap-4 text-center font-mono">
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">WAIT TIME</span>
+                                <span class="text-lg font-bold text-amber-400">31 min</span>
+                            </div>
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">TRAIN TIME</span>
+                                <span class="text-lg font-bold text-emerald-400">43 min</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+                        
+                    </div>
+                </div>
+            
+
+                <div id="agent-330" class="agent-timeline hidden flex flex-col gap-2 animate-fade-in">
+                    <div class="mb-4 bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-bold text-zinc-100">Rafael #30</h2>
+                            <p class="text-xs text-zinc-400 font-mono mt-1">Workout Template ID Reference: 1002</p>
+                        </div>
+                        <div class="flex gap-4 text-center font-mono">
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">WAIT TIME</span>
+                                <span class="text-lg font-bold text-amber-400">7 min</span>
+                            </div>
+                            <div class="bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-700/40">
+                                <span class="block text-xs text-zinc-400">TRAIN TIME</span>
+                                <span class="text-lg font-bold text-emerald-400">33 min</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5 overflow-y-auto max-h-[70vh] pr-2 custom-scrollbar">
+                        
+                    </div>
+                </div>
+            
+        </div>
+    </main>
+
+    <script>
+        const selector = document.getElementById('agentSelector');
+        const placeholder = document.getElementById('welcomePlaceholder');
+        const container = document.getElementById('timelineContainer');
+        const timelines = document.querySelectorAll('.agent-timeline');
+
+        selector.addEventListener('change', (e) => {
+            placeholder.classList.add('hidden');
+            container.classList.remove('hidden');
+            
+            timelines.forEach(t => t.classList.add('hidden'));
+            
+            const activeTimeline = document.getElementById(e.target.value);
+            if (activeTimeline) {
+                activeTimeline.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
+        

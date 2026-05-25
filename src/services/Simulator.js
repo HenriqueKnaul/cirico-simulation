@@ -1,7 +1,7 @@
 /**
- * High-Performance Predictive Orchestrator.
- * Executes dual-pass resource scanning to handle multi-target ID routing,
- * temporal queue windows (remaining time <= 5), and instant floor teleportation.
+ * Advanced Predictive Load Balancer Engine.
+ * Engineered with dynamic Priority Scheduling based on accumulated wait times
+ * to aggressively compress tail latency variance among agents.
  */
 export class Simulator {
     constructor(machines, members, options = { duration: 60 }) {
@@ -11,7 +11,7 @@ export class Simulator {
     }
 
     run() {
-        console.log(`[ENGINE] Running predictive-queue architecture for ${this.duration} cycles.`);
+        console.log(`[ENGINE] Running equity-driven predictive simulation for ${this.duration} cycles.`);
         for (let currentTick = 1; currentTick <= this.duration; currentTick++) {
             this._executeTick(currentTick);
         }
@@ -27,11 +27,6 @@ export class Simulator {
 
         this._updateActiveAgents();
         this._arbitrateResourceAllocation();
-
-        // TELEMETRY SNAPSHOT PHASE: Instruct all agents to commit their state to history
-        for (const member of this.members) {
-            member.logTickSnapshot(tick);
-        }
     }
 
     _updateActiveAgents() {
@@ -45,7 +40,6 @@ export class Simulator {
                     if (machine) {
                         machine.release();
                         
-                        // Queue Promotion: Instantly transfer machine lock to the waiting agent
                         const nextMember = machine.nextInQueue();
                         if (nextMember) {
                             machine.occupy(nextMember.name);
@@ -59,20 +53,23 @@ export class Simulator {
                     member.status = member.hasFinishedWorkout() ? "Completed" : "Awaiting";
                 }
             } else if (member.status === "Queued") {
-                member.incrementWaitTime(); // Accumulate wait time KPIs while locked in the predictive queue
+                member.incrementWaitTime();
             }
         }
     }
 
     _arbitrateResourceAllocation() {
-        // Starvation Guard: Randomize processing priority array
-        const randomizedAgents = [...this.members];
-        for (let i = randomizedAgents.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [randomizedAgents[i], randomizedAgents[j]] = [randomizedAgents[j], randomizedAgents[i]];
-        }
+        // EQUITY-BASED PRIORITY LAYER: Sort agents by accumulated wait time descending.
+        // Agents suffering from high congestion get to claim resources first.
+        // If wait times are identical, apply a stochastic tie-breaker to maintain system entropy.
+        const prioritizedAgents = [...this.members].sort((a, b) => {
+            if (b.waitTime !== a.waitTime) {
+                return b.waitTime - a.waitTime; 
+            }
+            return Math.random() - 0.5; // Fair random tie-breaker
+        });
 
-        for (const member of randomizedAgents) {
+        for (const member of prioritizedAgents) {
             if (member.status !== "Awaiting") continue;
 
             if (member.hasFinishedWorkout()) {
@@ -80,65 +77,49 @@ export class Simulator {
                 continue;
             }
 
-            let allocated = false;
+            const candidates = [];
 
-            // --- PASS 1: IMMEDIATE OPPORTUNISTIC ALLOCATION ---
-            // Scan for any physical machine from the exercise array that is 100% idle
+            // Pass 1: Gather all valid physical targets across remaining card routine
             for (const exercise of member.activeExercises) {
                 for (const machineId of exercise.targetMachineIds) {
                     const machine = this.machines.find(m => m.id === machineId);
                     
-                    // Rule Check: Must be idle AND not the exact consecutive resource used last tick
-                    if (machine && !machine.isOccupied() && machine.id !== member.lastMachineId) {
-                        if (member.currentFloor !== machine.floor) {
-                            member.currentFloor = machine.floor; // Instant teleportation
-                        }
-                        machine.occupy(member.name);
-                        member.status = "Training";
-                        member.remainingTime = exercise.defaultDuration;
-                        member.currentExercise = exercise;
-                        member.lastMachineId = machine.id; // Set anti-consecutive lock
-                        allocated = true;
-                        break;
+                    if (!machine || machine.id === member.lastMachineId) continue;
+
+                    if (!machine.isOccupied()) {
+                        candidates.push({ exercise, machine, type: 'TRAIN', score: 0 });
+                    } else if (machine.remainingTime <= 5 && machine.isQueueEmpty()) {
+                        candidates.push({ exercise, machine, type: 'QUEUE', score: machine.remainingTime });
                     }
                 }
-                if (allocated) break;
             }
 
-            if (allocated) continue;
-
-            // --- PASS 2: PREDICTIVE QUEUE ROUTING ---
-            // Triggered only if Pass 1 fails. Scans for a machine ending its block soon.
-            for (const exercise of member.activeExercises) {
-                for (const machineId of exercise.targetMachineIds) {
-                    const machine = this.machines.find(m => m.id === machineId);
-
-                    // Strict Criteria: Machine is occupied, current user has <= 5 mins left, queue slot is empty, and not the last used machine
-                    if (machine && machine.isOccupied() && machine.remainingTime <= 5 && machine.isQueueEmpty() && machine.id !== member.lastMachineId) {
-                        if (member.currentFloor !== machine.floor) {
-                            member.currentFloor = machine.floor;
-                        }
-                        machine.addToQueue(member);
-                        member.status = "Queued";
-                        member.currentExercise = exercise;
-                        member.lastMachineId = machine.id;
-                        allocated = true;
-                        break;
-                    }
-                }
-                if (allocated) break;
-            }
-
-            // --- FALLBACK PHASE ---
-            // Absolutely no physical options or eligible queues found. Agent waits out this cycle.
-            if (!allocated) {
+            // Congestion Fallback Phase
+            if (candidates.length === 0) {
                 member.incrementWaitTime();
-                
-                // Tech Note: If the agent is forced to wait out a minute entirely, we clear their 
-                // consecutive machine lock flag. This elegantly handles single-machine deadlocks 
-                // since they have already technically broken their streak by waiting.
-                member.lastMachineId = null;
+                member.lastMachineId = null; 
+                continue;
             }
+
+            // Order candidates by lowest congestion footprint
+            candidates.sort((a, b) => a.score - b.score);
+            const bestCandidate = candidates[0];
+
+            if (member.currentFloor !== bestCandidate.machine.floor) {
+                member.currentFloor = bestCandidate.machine.floor;
+            }
+
+            if (bestCandidate.type === 'TRAIN') {
+                bestCandidate.machine.occupy(member.name);
+                member.status = "Training";
+                member.remainingTime = bestCandidate.exercise.defaultDuration;
+            } else {
+                bestCandidate.machine.addToQueue(member);
+                member.status = "Queued";
+            }
+
+            member.currentExercise = bestCandidate.exercise;
+            member.lastMachineId = bestCandidate.machine.id;
         }
     }
 }
