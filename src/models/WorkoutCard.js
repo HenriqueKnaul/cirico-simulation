@@ -1,39 +1,34 @@
 /**
- * Domain entity representing a member's complete training card.
- * Holds structurally isolated routines for different muscle groups splits (A, B, C).
+ * Domain entity managing the training card container.
+ * Engineered with dynamic dictionary allocation to scale seamlessly up to 5 splits (A-E).
  */
 export class WorkoutCard {
-    /**
-     * @param {number} id - Unique identifier for the specific card template
-     */
     constructor(id) {
         this.id = id;
-        this.routineA = []; // Split: Chest, Shoulders, and Triceps
-        this.routineB = []; // Split: Back and Biceps
-        this.routineC = []; // Split: Overall Legs and Calf
+        this.routines = {}; // Dynamic Key-Value store replacing rigid property arrays
     }
 
     /**
-     * Fluent interface method to populate routine paths without leaking array internals.
+     * Registers an exercise node into a target split ledger.
      */
     addExerciseToSplit(splitLetter, exercise) {
         const target = splitLetter.toUpperCase();
-        if (target === 'A') this.routineA.push(exercise);
-        else if (target === 'B') this.routineB.push(exercise);
-        else if (target === 'C') this.routineC.push(exercise);
-        else throw new Error(`Domain Invariant Violation: Invalid routine split letter '${splitLetter}'.`);
+        
+        // Strategic Constraint: Enforce structural boundaries up to 5 custom splits
+        if (!['A', 'B', 'C', 'D', 'E'].includes(target)) {
+            throw new Error(`Domain Invariant Violation: Split split '${splitLetter}' exceeds corporate framework scale (A-E).`);
+        }
+
+        if (!this.routines[target]) {
+            this.routines[target] = [];
+        }
+        this.routines[target].push(exercise);
     }
 
     /**
-     * Safe extraction layer to retrieve a specific workout sequence for a given simulation day.
-     * @param {string} splitLetter - "A" | "B" | "C"
-     * @returns {Array<Exercise>}
+     * Safe extraction layer returning the target routine stack or an empty array fallback.
      */
     getRoutineBySplit(splitLetter) {
-        const target = splitLetter.toUpperCase();
-        if (target === 'A') return this.routineA;
-        if (target === 'B') return this.routineB;
-        if (target === 'C') return this.routineC;
-        return [];
+        return this.routines[splitLetter.toUpperCase()] || [];
     }
 }

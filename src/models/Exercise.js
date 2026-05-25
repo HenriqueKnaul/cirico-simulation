@@ -1,16 +1,16 @@
 /**
- * Value Object representing a specific exercise in a routine.
- * Decouples the abstract workout activity from the physical infrastructure resource.
+ * Value Object representing a workout exercise.
+ * Refactored to map against an array of physical resource IDs (Multi-Target Routing).
  */
 export class Exercise {
     /**
-     * @param {string} name - Common name of the exercise (e.g., "Inclined Press")
-     * @param {string} targetMachineName - Exact string match of the Machine name in gymLayout
-     * @param {number} defaultDuration - Estimated time in minutes needed to complete the sets
+     * @param {string} name - Exercise description
+     * @param {Array<number>} targetMachineIds - Collection of valid physical Machine IDs (e.g., [9, 10, 11, 12])
+     * @param {number} defaultDuration - Default baseline minutes
      */
-    constructor(name, targetMachineName, defaultDuration = 3) {
+    constructor(name, targetMachineIds, defaultDuration = 3) {
         this.name = name;
-        this.targetMachineName = targetMachineName;
+        this.targetMachineIds = [...targetMachineIds]; 
         this.defaultDuration = defaultDuration;
     }
 }

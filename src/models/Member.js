@@ -1,35 +1,25 @@
-/**
- * Refactored Autonomous Agent with Stochastic Arrival support.
- * Manages its own timeline constraints and lifecycle entry flags.
- */
 export class Member {
     constructor(id, name, workoutCardId, arrivalTick, initialFloor = "LowerFloor") {
         this.id = id;
         this.name = name;
         this.workoutCardId = workoutCardId;
-        this.arrivalTick = arrivalTick; // The exact simulation minute this agent enters the gym
-        
-        this.activeExercises = []; 
-        this.status = "NotArrived"; // Lifecycle State Machine: "NotArrived" | "Awaiting" | "Training" | "Completed"
+        this.arrivalTick = arrivalTick;
+        this.activeExercises = [];
+        this.status = "NotArrived"; 
         this.remainingTime = 0;
         this.waitTime = 0;
         this.currentFloor = initialFloor;
-        this.currentExercise = null; 
-        
-        // Analytical KPIs to evaluate execution efficiency at teardown
+        this.currentExercise = null;
         this.totalTrainingTime = 0;
+        this.lastMachineId = null;
+        
+        // Timeline tracking allocation bucket
+        this.timeline = []; 
     }
 
-    /**
-     * Injects the routine splits and dynamically overrides exercise durations 
-     * to match the new 8-15 minute standard block requirement.
-     */
     loadSessionWorkout(workoutCard, splitLetter) {
         const routine = workoutCard.getRoutineBySplit(splitLetter);
-        
-        // Deep clone and duration override engineering phase
         this.activeExercises = routine.map(exercise => {
-            // Generates a randomized integer bounded strictly between 8 and 15 minutes
             const realisticDuration = Math.floor(Math.random() * 8) + 8;
             return {
                 ...exercise,
@@ -38,19 +28,36 @@ export class Member {
         });
     }
 
+    /**
+     * Captures a discrete historical state snapshot for visual rendering.
+     */
+    logTickSnapshot(tick) {
+        let currentActivity = "Idle";
+        if (this.status === "Training" && this.currentExercise) {
+            currentActivity = `Exercising: ${this.currentExercise.name} (${this.remainingTime} min left)`;
+        } else if (this.status === "Queued" && this.currentExercise) {
+            currentActivity = `Stuck in predictive queue for: ${this.currentExercise.name}`;
+        } else if (this.status === "Awaiting") {
+            currentActivity = "Scanning gym floor for available machines";
+        } else if (this.status === "NotArrived") {
+            currentActivity = `At home (Arriving at minute ${this.arrivalTick})`;
+        } else if (this.status === "Completed") {
+            currentActivity = "Session finished. Showering and leaving";
+        }
+
+        this.timeline.push({
+            tick,
+            status: this.status,
+            floor: this.currentFloor,
+            activity: currentActivity
+        });
+    }
+
     completeExercise(exercise) {
         this.activeExercises = this.activeExercises.filter(e => e !== exercise);
     }
 
-    incrementWaitTime() {
-        this.waitTime++;
-    }
-
-    incrementTrainingTime() {
-        this.totalTrainingTime++;
-    }
-
-    hasFinishedWorkout() {
-        return this.activeExercises.length === 0 && this.status !== "Training";
-    }
+    incrementWaitTime() { this.waitTime++; }
+    incrementTrainingTime() { this.totalTrainingTime++; }
+    hasFinishedWorkout() { return this.activeExercises.length === 0 && this.status !== "Training"; }
 }
