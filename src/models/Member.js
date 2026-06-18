@@ -1,63 +1,75 @@
+export const MemberStatus = {
+    NOT_ARRIVED: 'NOT_ARRIVED',
+    AWAITING: 'AWAITING',
+    TRAINING: 'TRAINING',
+    QUEUED: 'QUEUED',
+    COMPLETED: 'COMPLETED'
+};
+
 export class Member {
-    constructor(id, name, workoutCardId, arrivalTick, initialFloor = "LowerFloor") {
+    constructor(id, name, arrivalTick, currentFloor) {
         this.id = id;
         this.name = name;
-        this.workoutCardId = workoutCardId;
         this.arrivalTick = arrivalTick;
+        this.currentFloor = currentFloor;
+        this.status = MemberStatus.NOT_ARRIVED;
         this.activeExercises = [];
-        this.status = "NotArrived"; 
-        this.remainingTime = 0;
+        this.completedExercises = [];
         this.waitTime = 0;
-        this.currentFloor = initialFloor;
+        this.trainingTime = 0;
+        this.remainingTime = 0;
+        this.currentMachineId = null;
         this.currentExercise = null;
-        this.totalTrainingTime = 0;
         this.lastMachineId = null;
-        
-        // Timeline tracking allocation bucket
-        this.timeline = []; 
+        this.consecutiveBlockedTicks = 0;
+        this.gaveUp = false;
     }
 
-    loadSessionWorkout(workoutCard, splitLetter) {
-        const routine = workoutCard.getRoutineBySplit(splitLetter);
-        this.activeExercises = routine.map(exercise => {
-            const realisticDuration = Math.floor(Math.random() * 8) + 8;
-            return {
-                ...exercise,
-                defaultDuration: realisticDuration
-            };
-        });
-    }
-
-    /**
-     * Captures a discrete historical state snapshot for visual rendering.
-     */
-    logTickSnapshot(tick) {
-        let currentActivity = "Idle";
-        if (this.status === "Training" && this.currentExercise) {
-            currentActivity = `Exercising: ${this.currentExercise.name} (${this.remainingTime} min left)`;
-        } else if (this.status === "Queued" && this.currentExercise) {
-            currentActivity = `Stuck in predictive queue for: ${this.currentExercise.name}`;
-        } else if (this.status === "Awaiting") {
-            currentActivity = "Scanning gym floor for available machines";
-        } else if (this.status === "NotArrived") {
-            currentActivity = `At home (Arriving at minute ${this.arrivalTick})`;
-        } else if (this.status === "Completed") {
-            currentActivity = "Session finished. Showering and leaving";
+    loadSessionWorkout(exercises) {
+        if (this.activeExercises.length > 0) {
+            throw new Error(`Safety Violation: Active exercises are already loaded for member ${this.name}.`);
         }
-
-        this.timeline.push({
-            tick,
-            status: this.status,
-            floor: this.currentFloor,
-            activity: currentActivity
-        });
+        this.activeExercises = exercises;
     }
 
-    completeExercise(exercise) {
-        this.activeExercises = this.activeExercises.filter(e => e !== exercise);
+    tickTraining() {
+        this.trainingTime++;
+        if (this.remainingTime > 0) {
+            this.remainingTime--;
+        }
     }
 
-    incrementWaitTime() { this.waitTime++; }
-    incrementTrainingTime() { this.totalTrainingTime++; }
-    hasFinishedWorkout() { return this.activeExercises.length === 0 && this.status !== "Training"; }
+    tickWaiting() {
+        this.waitTime++;
+    }
+
+    startTraining(exercise, machineId) {
+        this.status = MemberStatus.TRAINING;
+        this.currentMachineId = machineId;
+        this.currentExercise = exercise;
+        this.remainingTime = exercise.defaultDuration;
+        this.lastMachineId = machineId;
+    }
+
+    finishExercise() {
+        if (this.currentExercise) {
+            this.completedExercises.push(this.currentExercise);
+            this.activeExercises = this.activeExercises.filter(e => e !== this.currentExercise);
+        }
+        this.status = MemberStatus.AWAITING;
+        this.currentMachineId = null;
+        this.currentExercise = null;
+    }
+
+    joinQueue(exercise, machineId) {
+        this.status = MemberStatus.QUEUED;
+        this.currentMachineId = machineId;
+        this.currentExercise = exercise;
+        this.lastMachineId = machineId;
+        this.consecutiveBlockedTicks = 0;
+    }
+
+    hasFinishedWorkout() {
+        return this.activeExercises.length === 0;
+    }
 }

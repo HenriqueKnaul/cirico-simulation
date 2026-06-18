@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cirico Simulation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .config-row input {
+            background: transparent;
+            border: none;
+            border-bottom: 2px dashed #49b7b4;
+            color: #ffffff;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 36px;
+            font-weight: 700;
+            outline: none;
+            width: 110px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <a href="/select-layout" class="back-link">
+        <i class="bx bx-left-arrow-alt icon-nav"></i>
+    </a>
+
+    <a href="https://github.com/HenriqueKnaul/cirico-simulation" target="_blank" class="git-link">
+        <i class="bx bxl-github icon-nav"></i>
+    </a>
+
+    <div class="container">
+        <div class="logo-area">
+            <img src="/img/logo.png" alt="Logo Cirico Iron Gym" class="logo-image">
+        </div>
+
+        <h1 class="title" id="selected-layout-name">Original Layout</h1>
+
+        <form action="/results" method="GET" class="config-form">
+            <input type="hidden" id="gymId" name="gymId" value="1">
+
+            <div class="config-row">
+                <span>Agents:</span>
+                <input type="number" id="agents" name="agents" min="1" max="300" value="35" required>
+            </div>
+
+            <div class="config-row">
+                <span>Minutes:</span>
+                <input type="number" id="time" name="time" min="1" max="480" value="120" required>
+            </div>
+
+            <div class="config-row">
+                <span>Simulations:</span>
+                <input type="number" id="simulations" name="simulations" min="1" max="500" value="200" required>
+            </div>
+
+            <button type="submit" class="btn-results">START</button>
+        </form>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const gymId = urlParams.get('gymId') || '1';
+        document.getElementById('gymId').value = gymId;
+
+        const layoutNames = { '1': 'Original Layout', '2': 'DoubleSize Layout' };
+        document.getElementById('selected-layout-name').textContent = layoutNames[gymId] || 'Original Layout';
+    </script>
+</body>
+</html>

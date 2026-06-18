@@ -1,46 +1,56 @@
-/**
- * Entity representing a physical gym asset.
- * Controls resource allocation state and hosts a high-friction predictive queue.
- */
 export class Machine {
     constructor(id, name, floor) {
         this.id = id;
         this.name = name;
         this.floor = floor;
-        this.occupiedBy = null;
-        this.queue = []; // Finite queue allocation block. Maximum capacity boundary = 1.
+        this.queue = [];
+        
+        const unlimitedMachines = ["dumbbells", "exercise mat area"];
+        this.isUnlimited = unlimitedMachines.includes(name.toLowerCase());
+        this.maxCapacity = this.isUnlimited ? 10 : 1;
+        
+        this.users = [];
+        this.totalUsageTime = 0;
+        this.totalQueueTime = 0;
+        this.queueCapacity = Infinity;
     }
 
-    isOccupied() {
-        return this.occupiedBy !== null;
+    isFull() {
+        return this.users.length >= this.maxCapacity;
+    }
+
+    hasQueueCapacity() {
+        return this.queue.length < this.queueCapacity;
     }
 
     occupy(memberName) {
-        this.occupiedBy = memberName;
+        if (this.isFull()) {
+            throw new Error(`Machine ${this.name} is already at maximum capacity.`);
+        }
+        this.users.push(memberName);
     }
 
-    release() {
-        this.occupiedBy = null;
+    releaseUser(memberName) {
+        this.users = this.users.filter(u => u !== memberName);
     }
 
-    /**
-     * Pushes an agent to the predictive waiting slot.
-     */
+    hasUser(memberName) {
+        return this.users.includes(memberName);
+    }
+
     addToQueue(member) {
-        if (this.queue.length >= 1) {
-            throw new Error(`Infrastructure Overflow: Machine ID ${this.id} predictive queue slot is already locked.`);
+        if (!this.hasQueueCapacity()) {
+            throw new Error(`Machine ${this.id} queue is full.`);
         }
         this.queue.push(member);
     }
 
-    /**
-     * Pops and returns the next agent inline to claim immediate resource ownership.
-     */
     nextInQueue() {
         return this.queue.shift() || null;
     }
 
-    isQueueEmpty() {
-        return this.queue.length === 0;
+    recordTickUsage() {
+        this.totalUsageTime += (this.users.length / this.maxCapacity);
+        this.totalQueueTime += this.queue.length;
     }
 }

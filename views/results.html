@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cirico Simulation - Results</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+    <a id="back-to-config" href="/select-layout" class="back-link">
+        <i class="bx bx-left-arrow-alt icon-nav"></i>
+    </a>
+
+    <a href="https://github.com/HenriqueKnaul/cirico-simulation" target="_blank" class="git-link">
+        <i class="bx bxl-github icon-nav"></i>
+    </a>
+
+    <div class="dashboard-container">
+        <h1 id="results-title" class="title">Simulation Results</h1>
+
+        <div class="metrics-row">
+            <div class="metric-card">
+                <h3>Average Wait Time</h3>
+                <p id="metric-wait">Loading...</p>
+            </div>
+            <div class="metric-card">
+                <h3>Productivity Index</h3>
+                <p id="metric-prod">Loading...</p>
+            </div>
+            <div class="metric-card">
+                <h3>Overall Occupancy</h3>
+                <p id="metric-occup">Loading...</p>
+            </div>
+            <div class="metric-card">
+                <h3>Abandoned Sessions</h3>
+                <p id="metric-abandoned">Loading...</p>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-box">
+                <canvas id="chart-machines"></canvas>
+            </div>
+            <div class="chart-box">
+                <canvas id="chart-timeline"></canvas>
+            </div>
+        </div>
+
+        <button class="btn-home" onclick="window.location.href='/'">Go Home</button>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const gymId = urlParams.get('gymId') || '1';
+        const agents = urlParams.get('agents') || '35';
+        const time = urlParams.get('time') || '120';
+        const simulations = urlParams.get('simulations') || '1';
+
+        document.getElementById('back-to-config').href = `/config?gymId=${gymId}`;
+
+        const layoutNames = { '1': 'Original Layout', '2': 'DoubleSize Layout' };
+        document.getElementById('results-title').textContent = `Results: ${layoutNames[gymId] || 'Original Layout'}`;
+
+        fetch(`/api/simulate?gymId=${gymId}&agents=${agents}&time=${time}&simulations=${simulations}`)
+            .then(res => {
+                if (!res.ok) {
+                    return res.json().then(err => { throw new Error(err.error || 'Server processing error') });
+                }
+                return res.json();
+            })
+            .then(data => {
+                document.getElementById('metric-wait').textContent = `${data.averageWaitTime} min`;
+                document.getElementById('metric-prod').textContent = `${data.productivityIndex}%`;
+                document.getElementById('metric-occup').textContent = `${data.overallOccupancy}%`;
+                document.getElementById('metric-abandoned').textContent = `${data.abandonedCount} agents`;
+
+                const machineLabels = Object.keys(data.machineOccupancy);
+                const machineRates = Object.values(data.machineOccupancy);
+
+                const ctxMachines = document.getElementById('chart-machines').getContext('2d');
+                new Chart(ctxMachines, {
+                    type: 'bar',
+                    data: {
+                        labels: machineLabels,
+                        datasets: [{
+                            label: 'Occupancy Rate (%)',
+                            data: machineRates,
+                            backgroundColor: '#49b7b4',
+                            borderColor: '#49b7b4',
+                            borderWidth: 1,
+                            borderRadius: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                labels: { color: '#ffffff', font: { family: 'Rajdhani', size: 14 } }
+                            }
+                        },
+                        scales: {
+                            x: { 
+                                grid: { color: '#33373e' }, 
+                                ticks: { 
+                                    color: '#ffffff', 
+                                    font: { family: 'Rajdhani', size: 9, weight: '600' },
+                                    maxRotation: 45,
+                                    minRotation: 45,
+                                    autoSkip: false
+                                } 
+                            },
+                            y: { 
+                                min: 0, 
+                                max: 100, 
+                                grid: { color: '#33373e' }, 
+                                ticks: { color: '#ffffff', font: { family: 'Rajdhani' } } 
+                            }
+                        }
+                    }
+                });
+
+                const trainingData = data.timeline.map(t => ({ x: t.tick, y: t.training }));
+                const queueData = data.timeline.map(t => ({ x: t.tick, y: t.queued }));
+
+                const ctxTimeline = document.getElementById('chart-timeline').getContext('2d');
+                new Chart(ctxTimeline, {
+                    type: 'line',
+                    data: {
+                        datasets: [
+                            {
+                                label: 'Training Agents',
+                                borderColor: '#49b7b4',
+                                backgroundColor: '#49b7b4',
+                                tension: 0.3,
+                                data: trainingData,
+                                pointRadius: 0,
+                                pointHoverRadius: 5
+                            },
+                            {
+                                label: 'Queued Agents',
+                                borderColor: '#ff5b5b',
+                                backgroundColor: '#ff5b5b',
+                                tension: 0.3,
+                                data: queueData,
+                                pointRadius: 0,
+                                pointHoverRadius: 5
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        plugins: {
+                            legend: { 
+                                labels: { 
+                                    color: '#ffffff', 
+                                    font: { family: 'Rajdhani', size: 14 },
+                                    usePointStyle: true,
+                                    pointStyle: 'circle'
+                                } 
+                            }
+                        },
+                        scales: {
+                            x: { 
+                                type: 'linear',
+                                min: 1,
+                                max: parseInt(time),
+                                grid: { color: '#33373e' }, 
+                                ticks: { 
+                                    color: '#ffffff', 
+                                    font: { family: 'Rajdhani' },
+                                    stepSize: 5,
+                                    callback: function(value) {
+                                        return 'Min ' + value;
+                                    }
+                                } 
+                            },
+                            y: { 
+                                grid: { color: '#33373e' }, 
+                                ticks: { color: '#ffffff', font: { family: 'Rajdhani' } } 
+                            }
+                        }
+                    }
+                });
+            })
+            .catch(error => {
+                console.error("[FETCH ERROR]", error);
+                document.getElementById('metric-wait').textContent = "Error";
+                document.getElementById('metric-prod').textContent = "Error";
+                document.getElementById('metric-occup').textContent = "Error";
+                document.getElementById('metric-abandoned').textContent = "Error";
+                alert(`Simulation Failed: ${error.message}`);
+            });
+    </script>
+</body>
+</html>

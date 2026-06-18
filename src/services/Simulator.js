@@ -1,107 +1,114 @@
-/**
- * Advanced Predictive Load Balancer Engine.
- * Engineered with dynamic Priority Scheduling based on accumulated wait times
- * to aggressively compress tail latency variance among agents.
- */
+import { MemberStatus } from '../models/Member.js';
+
 export class Simulator {
     constructor(machines, members, options = { duration: 60 }) {
         this.machines = machines;
         this.members = members;
         this.duration = options.duration;
+        this.machinesMap = new Map(machines.map(m => [m.id, m]));
+        this.timelineData = [];
     }
 
     run() {
-        console.log(`[ENGINE] Running equity-driven predictive simulation for ${this.duration} cycles.`);
         for (let currentTick = 1; currentTick <= this.duration; currentTick++) {
             this._executeTick(currentTick);
         }
-        console.log(`[ENGINE] Simulation execution finalized.`);
+        return this._buildReport();
     }
 
     _executeTick(tick) {
         for (const member of this.members) {
-            if (member.status === "NotArrived" && tick >= member.arrivalTick) {
-                member.status = "Awaiting";
+            if (member.status === MemberStatus.NOT_ARRIVED && tick >= member.arrivalTick) {
+                member.status = MemberStatus.AWAITING;
+                member.consecutiveBlockedTicks = 0;
+                member.gaveUp = false;
             }
         }
 
         this._updateActiveAgents();
+        this._handlePatienceTimeout();
         this._arbitrateResourceAllocation();
+
+        for (const machine of this.machines) {
+            machine.recordTickUsage();
+        }
+
+        let training = 0;
+        let queued = 0;
+        for (const m of this.members) {
+            if (m.status === MemberStatus.TRAINING) training++;
+            if (m.status === MemberStatus.QUEUED || m.status === MemberStatus.AWAITING) queued++;
+        }
+        this.timelineData.push({ tick, training, queued });
     }
 
     _updateActiveAgents() {
         for (const member of this.members) {
-            if (member.status === "Training") {
-                member.remainingTime--;
-                member.incrementTrainingTime();
+            if (member.status === MemberStatus.TRAINING) {
+                member.tickTraining();
 
                 if (member.remainingTime === 0) {
-                    const machine = this.machines.find(m => m.occupiedBy === member.name);
+                    const machine = this.machinesMap.get(member.currentMachineId);
                     if (machine) {
-                        machine.release();
+                        machine.releaseUser(member.name);
                         
                         const nextMember = machine.nextInQueue();
                         if (nextMember) {
                             machine.occupy(nextMember.name);
-                            nextMember.status = "Training";
-                            nextMember.remainingTime = nextMember.currentExercise.defaultDuration;
+                            nextMember.startTraining(nextMember.currentExercise, machine.id);
                         }
                     }
-
-                    member.completeExercise(member.currentExercise);
-                    member.currentExercise = null;
-                    member.status = member.hasFinishedWorkout() ? "Completed" : "Awaiting";
+                    member.finishExercise();
                 }
-            } else if (member.status === "Queued") {
-                member.incrementWaitTime();
+            } else if (member.status === MemberStatus.QUEUED) {
+                member.tickWaiting();
             }
         }
     }
 
     _arbitrateResourceAllocation() {
-        // EQUITY-BASED PRIORITY LAYER: Sort agents by accumulated wait time descending.
-        // Agents suffering from high congestion get to claim resources first.
-        // If wait times are identical, apply a stochastic tie-breaker to maintain system entropy.
         const prioritizedAgents = [...this.members].sort((a, b) => {
-            if (b.waitTime !== a.waitTime) {
-                return b.waitTime - a.waitTime; 
-            }
-            return Math.random() - 0.5; // Fair random tie-breaker
+            if (b.waitTime !== a.waitTime) return b.waitTime - a.waitTime; 
+            return a.id - b.id;
         });
 
         for (const member of prioritizedAgents) {
-            if (member.status !== "Awaiting") continue;
+            if (member.status !== MemberStatus.AWAITING) continue;
 
             if (member.hasFinishedWorkout()) {
-                member.status = "Completed";
+                member.status = MemberStatus.COMPLETED;
                 continue;
             }
 
             const candidates = [];
 
-            // Pass 1: Gather all valid physical targets across remaining card routine
             for (const exercise of member.activeExercises) {
                 for (const machineId of exercise.targetMachineIds) {
-                    const machine = this.machines.find(m => m.id === machineId);
+                    const machine = this.machinesMap.get(machineId);
                     
                     if (!machine || machine.id === member.lastMachineId) continue;
 
-                    if (!machine.isOccupied()) {
+                    if (!machine.isFull()) {
                         candidates.push({ exercise, machine, type: 'TRAIN', score: 0 });
-                    } else if (machine.remainingTime <= 5 && machine.isQueueEmpty()) {
-                        candidates.push({ exercise, machine, type: 'QUEUE', score: machine.remainingTime });
+                    } else if (machine.hasQueueCapacity()) {
+                        let remaining = 0;
+                        for (const m of this.members) {
+                            if (m.status === MemberStatus.TRAINING && m.currentMachineId === machine.id) {
+                                remaining = m.remainingTime;
+                                break;
+                            }
+                        }
+                        candidates.push({ exercise, machine, type: 'QUEUE', score: remaining });
                     }
                 }
             }
 
-            // Congestion Fallback Phase
             if (candidates.length === 0) {
-                member.incrementWaitTime();
+                member.tickWaiting();
                 member.lastMachineId = null; 
                 continue;
             }
 
-            // Order candidates by lowest congestion footprint
             candidates.sort((a, b) => a.score - b.score);
             const bestCandidate = candidates[0];
 
@@ -111,15 +118,69 @@ export class Simulator {
 
             if (bestCandidate.type === 'TRAIN') {
                 bestCandidate.machine.occupy(member.name);
-                member.status = "Training";
-                member.remainingTime = bestCandidate.exercise.defaultDuration;
+                member.startTraining(bestCandidate.exercise, bestCandidate.machine.id);
             } else {
                 bestCandidate.machine.addToQueue(member);
-                member.status = "Queued";
+                member.joinQueue(bestCandidate.exercise, bestCandidate.machine.id);
             }
-
-            member.currentExercise = bestCandidate.exercise;
-            member.lastMachineId = bestCandidate.machine.id;
         }
+    }
+
+    _handlePatienceTimeout() {
+        for (const member of this.members) {
+            if (member.status === MemberStatus.QUEUED || member.status === MemberStatus.AWAITING) {
+                member.consecutiveBlockedTicks = (member.consecutiveBlockedTicks || 0) + 1;
+                
+                if (member.consecutiveBlockedTicks >= 30) {
+                    if (member.status === MemberStatus.QUEUED && member.currentMachineId) {
+                        const machine = this.machinesMap.get(member.currentMachineId);
+                        if (machine) {
+                            machine.queue = machine.queue.filter(m => m.id !== member.id);
+                        }
+                    }
+                    member.status = MemberStatus.COMPLETED;
+                    member.gaveUp = true;
+                    member.currentExercise = null;
+                    member.currentMachineId = null;
+                }
+            } else if (member.status === MemberStatus.TRAINING) {
+                member.consecutiveBlockedTicks = 0;
+            }
+        }
+    }
+
+    _buildReport() {
+        const completedMembers = this.members.filter(m => m.hasFinishedWorkout() && !m.gaveUp).length;
+        const abandonedCount = this.members.filter(m => m.gaveUp).length;
+        const productivityIndex = this.members.length > 0 ? Math.round((completedMembers / this.members.length) * 100) : 0;
+        
+        let totalWaitTime = 0;
+        for (const m of this.members) {
+            totalWaitTime += m.waitTime;
+        }
+        const averageWaitTime = this.members.length > 0 ? Math.round(totalWaitTime / this.members.length) : 0;
+
+        let totalPotentialUsage = this.duration * this.machines.filter(m => !m.isUnlimited).length;
+        let totalActualUsage = 0;
+        const machineOccupancy = {};
+
+        for (const machine of this.machines) {
+            const rate = this.duration > 0 ? Math.round((machine.totalUsageTime / this.duration) * 100) : 0;
+            machineOccupancy[machine.name] = Math.min(100, rate);
+            if (!machine.isUnlimited) {
+                totalActualUsage += Math.min(this.duration, machine.totalUsageTime);
+            }
+        }
+
+        const overallOccupancy = totalPotentialUsage > 0 ? Math.round((totalActualUsage / totalPotentialUsage) * 100) : 0;
+
+        return {
+            averageWaitTime,
+            productivityIndex,
+            overallOccupancy: Math.min(100, overallOccupancy),
+            abandonedCount,
+            machineOccupancy,
+            timeline: this.timelineData
+        };
     }
 }
